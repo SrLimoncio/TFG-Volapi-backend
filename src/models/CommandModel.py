@@ -21,27 +21,26 @@ class CommandModel:
     @classmethod
     def get_info_command(cls, command_id):
         """Obtiene información sobre un comando."""
-        query = "SELECT name, parameters, description FROM volatility_commands WHERE id = %s"
+        query = "SELECT name, plugin_name, plugin_options, description, chart_type FROM vol3_commands WHERE id = %s"
         values = (command_id,)
         data = DatabaseHandler.execute_query(query, values)
-        return data if data else None
+        return data[0] if data else None
 
     @classmethod
-    def create_result_vol_command(cls, command_id, user_id, project_id, result):
+    def create_result_vol_command(cls, command_id, user_id, project_id, result, command_line):
         """Guarda resultados de un comando para un usuario específico."""
         query = ("INSERT INTO results_commands_vol "
-                 "(command_id, user_id, project_id, result) "
-                 "VALUES (%s, %s, %s, %s)")
-        values = (command_id, user_id, project_id, result)
+                 "(command_id, user_id, project_id, result, command_line) "
+                 "VALUES (%s, %s, %s, %s, %s)")
+        values = (command_id, user_id, project_id, result, command_line)
         data = DatabaseHandler.execute_query(query, values, DatabaseHandler.INSERT)
 
     @classmethod
     def get_result_vol_command(cls, command_id, user_id, project_id):
-        query = ("SELECT result, execution_time, error FROM results_commands_vol "
+        query = ("SELECT result, command_line, execution_time, error FROM results_commands_vol "
                  "WHERE command_id = %s AND user_id = %s AND project_id = %s")
         values = (command_id, user_id, project_id)
         data = DatabaseHandler.execute_query(query, values)
-        print(data)
         return data[0] if data else None
 
     @classmethod

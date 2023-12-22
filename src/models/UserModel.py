@@ -20,9 +20,9 @@ class UserModel:
     @classmethod
     def create_user(cls, email, password, username, name):
         # Método para crear un nuevo usuario en la base de datos.
-        query = "INSERT INTO users (email, password, username, name, account_status) VALUES (%s, %s, %s, %s, %s)"
+        procedure = "CreateUser"
         values = (email, password, username, name, "ACTIVE")
-        data = DatabaseHandler.execute_query(query, values, DatabaseHandler.INSERT)
+        data = DatabaseHandler.call_procedure(procedure, values)
 
     @classmethod
     def user_exists_email(cls, email):
@@ -47,11 +47,3 @@ class UserModel:
         values = (email,)
         data = DatabaseHandler.execute_query(query, values, DatabaseHandler.SELECT)
         return cls(*data[0]) if data else None
-
-    @classmethod
-    def get_project_active(cls, user_id):
-        # Método para extraer el proyecto activo de un usuario
-        query = "SELECT project_active FROM users WHERE id = %s"
-        values = (user_id,)
-        data = DatabaseHandler.execute_query(query, values, DatabaseHandler.SELECT)
-        return data[0][0] if data else None

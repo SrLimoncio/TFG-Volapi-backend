@@ -1,10 +1,13 @@
 import json
 import traceback
+import pymysql
 
 # Database
 from src.database.db_mysql import get_connection
 # Logger
 from src.utils.Logger import Logger
+# Exceptions
+from src.utils.exceptions.exceptions import SQLExecutionError
 
 
 class DatabaseHandler:
@@ -15,6 +18,8 @@ class DatabaseHandler:
 
     @classmethod
     def execute_query(cls, sql_query, values=None, operation_type='SELECT'):
+        connection = None
+        cursor = None
         try:
             connection = get_connection()
             if connection is None:
@@ -29,16 +34,49 @@ class DatabaseHandler:
 
             if operation_type == 'SELECT':
                 result = cursor.fetchall()
-            else:
-                connection.commit()  # Realizar commit para aplicar cambios en la base de datos
-                result = None  # No hay resultados para consultas de inserción, actualización o eliminación
 
-            cursor.close()
-            connection.close()
+            elif operation_type in ['INSERT', 'UPDATE', 'DELETE']:
+                affected_rows = cursor.rowcount
+                connection.commit()
+                result = f"{affected_rows} filas afectadas."
+
+            else:
+                result = None  # Operación desconocida
 
             return result
 
-        except Exception as ex:
-            Logger.add_to_log("error", str(ex))
-            Logger.add_to_log("error", traceback.format_exc())
-            return None
+        finally:
+            # Asegurarse de cerrar el cursor y la conexión incluso si ocurre una excepción
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()
+
+    @classmethod
+    def call_procedure(cls, name_procedure, parameters):
+        connection = None
+        cursor = None
+        try:
+            connection = get_connection()
+            if connection is None:
+                return None
+
+            cursor = connection.cursor()
+
+            # Llamar al procedimiento almacenado
+            cursor.callproc(name_procedure, parameters)
+            connection.commit()
+
+            return True
+
+        except pymysql.err.InternalError as e:
+            Logger.add_to_log("info", str("DatabaseHandler:" + e))
+            print("DatabaseHandler:" + e)
+            raise SQLExecutionError(f"Error SQL: {e}")
+
+        finally:
+            # Cerramos el cursor y la conexión incluso si ocurre una excepción
+            if cursor:
+                cursor.close()
+            if connection:
+                connection.close()

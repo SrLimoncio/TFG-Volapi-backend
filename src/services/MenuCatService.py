@@ -9,6 +9,7 @@ from src.utils.Security import Security
 # Model
 from src.models.MenuModel import MenuModel
 from src.models.UserModel import UserModel
+from src.models.ProjectModel import ProjectModel
 
 
 class MenuCatService():
@@ -18,7 +19,7 @@ class MenuCatService():
             decoded_token = Security.verify_token(encoded_token)
             if decoded_token:
                 user_id = decoded_token['id']
-                project_active = UserModel.get_project_active(user_id)
+                project_active = ProjectModel.get_id_project_active(user_id)
                 categories_data = MenuModel.get_categories()
 
                 if categories_data:
@@ -34,28 +35,27 @@ class MenuCatService():
                         }
 
                         # Obtener subcategorías para la categoría actual
-                        subcategories_data = MenuModel.get_subcategories(category_id)
+                        commands_data = MenuModel.get_commands_by_category(category_id)
 
-                        if subcategories_data:
-                            subcategories_list = []
+                        if commands_data:
+                            commands_list = []
 
-                            for subcategory in subcategories_data:
-                                subcategory_id = subcategory[0]
-                                subcategory_dict = {
-                                    "id": subcategory_id,
-                                    "title": subcategory[1],
-                                    "description": subcategory[2],
-                                    "command_id": subcategory[3]
+                            for command in commands_data:
+                                command_id = command[0]
+                                commands_dict = {
+                                    "id": command_id,
+                                    "title": command[1],
+                                    "description": command[2]
                                 }
 
                                 # Obtener información adicional sobre el estado de la subcategoría
-                                status = MenuModel.get_status_subcat_user(user_id, subcategory_id, project_active)
+                                status = MenuModel.get_status_command_user(user_id, project_active, command_id)
 
-                                subcategory_dict["state"] = status
+                                commands_dict["state"] = status
 
-                                subcategories_list.append(subcategory_dict)
+                                commands_list.append(commands_dict)
 
-                            category_dict["subcategories"] = subcategories_list
+                            category_dict["commands"] = commands_list
 
                         categories_list.append(category_dict)
 
