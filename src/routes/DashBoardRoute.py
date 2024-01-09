@@ -10,6 +10,21 @@ from src.utils.Logger import Logger
 main = Blueprint('dashboard', __name__)
 
 
+@main.route('/api/user-has-projects', methods=['GET'])
+def user_has_projects():
+    try:
+        authorization_header = request.headers.get('Authorization')
+
+        response, status_code = DashBoardServices.user_has_projects(authorization_header)
+
+        return jsonify(response), status_code
+
+    except Exception as ex:
+        Logger.add_to_log("error", str(ex))
+        Logger.add_to_log("error", traceback.format_exc())
+        return jsonify({'message': "Error intern", 'success': False}), 500
+
+
 @main.route('/api/projects', methods=['GET'])
 def get_projects_user():
     try:
@@ -45,16 +60,46 @@ def update_name_project(id_project):
 def create_project():
     try:
         authorization_header = request.headers.get('Authorization')
+
+        # Obtener datos del formulario
         name = request.json.get('name')
         tool = request.json.get('tool')
         os = request.json.get('os')
-        memory_path = request.json.get('memory_path')
+
+        Logger.add_to_log("error", name)
+        Logger.add_to_log("error", tool)
+        Logger.add_to_log("error", os)
 
         response, status_code = DashBoardServices.create_project(authorization_header,
                                                                  name,
                                                                  tool,
-                                                                 os,
-                                                                 memory_path)
+                                                                 os)
+
+        return jsonify(response), status_code
+
+    except Exception as ex:
+        Logger.add_to_log("error", str(ex))
+        Logger.add_to_log("error", traceback.format_exc())
+        return jsonify({'message': "Error intern", 'success': False}), 500
+
+
+@main.route('/api/upload-chunk-file', methods=['POST'])
+def upload_chunk_file():
+    try:
+        authorization_header = request.headers.get('Authorization')
+
+        project_id = request.form['projectId']
+        chunk = request.files['chunk']
+        chunk_number = request.form['chunkNumber']
+        total_chunks = request.form.get('totalChunks')
+        file_name = request.form.get('fileName')
+
+        response, status_code = DashBoardServices.upload_chunk_file(authorization_header,
+                                                                    project_id,
+                                                                    chunk,
+                                                                    chunk_number,
+                                                                    total_chunks,
+                                                                    file_name)
 
         return jsonify(response), status_code
 
@@ -79,12 +124,12 @@ def update_active_project(id_project):
         return jsonify({'message': "Internal Server Error", 'success': False}), 500
 
 
-@main.route('/api/delete-project', methods=['GET'])
-def delete_project():
+@main.route('/api/delete-project/<int:id_project>', methods=['DELETE'])
+def delete_project(id_project):
     try:
         authorization_header = request.headers.get('Authorization')
 
-        response, status_code = DashBoardServices.save_edit_project(authorization_header, new_name_project)
+        response, status_code = DashBoardServices.delete_project(authorization_header, id_project)
 
         return jsonify(response), status_code
 

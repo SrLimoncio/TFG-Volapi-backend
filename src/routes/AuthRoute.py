@@ -18,6 +18,8 @@ def auth_login():
 
         response, status_code = AuthServices.authenticate_user(email, password)
 
+        Logger.add_to_log("info", response)
+        Logger.add_to_log("info", status_code)
         return jsonify(response), status_code
 
     except Exception as ex:
@@ -56,12 +58,29 @@ def auth_sign_up():
         return jsonify({'message': str(ex), 'success': False}), 500
 
 
-@auth.route('/api/check-token', methods=['GET'])
-def auth_check_token():
+@auth.route('/api/check-access-token', methods=['GET'])
+def auth_check_access_token():
     try:
         authorization_header = request.headers.get('Authorization')
 
-        response, status_code = AuthServices.check_token(authorization_header)
+        response, status_code = AuthServices.check_access_token(authorization_header)
+
+        return jsonify(response), status_code
+
+    except Exception as ex:
+        Logger.add_to_log("error", str(ex))
+        Logger.add_to_log("error", traceback.format_exc())
+        return jsonify({'message': str(ex), 'success': False}), 500
+
+
+@auth.route('/api/renew-access-token', methods=['POST'])
+def auth_check_refresh_token():
+    try:
+        failed_access_token = request.headers.get('Failed-Access-Token')
+        refresh_token = request.headers.get('Refresh-Token')
+
+        response, status_code = AuthServices.renew_access_token(failed_access_token, refresh_token)
+        Logger.add_to_log("info", response)
 
         return jsonify(response), status_code
 

@@ -7,7 +7,7 @@ from src.database.db_mysql import get_connection
 # Logger
 from src.utils.Logger import Logger
 # Exceptions
-from src.utils.exceptions.exceptions import SQLExecutionError
+from src.utils.exceptions.CustomExceptions import SQLCustomException
 
 
 class DatabaseHandler:
@@ -65,14 +65,16 @@ class DatabaseHandler:
 
             # Llamar al procedimiento almacenado
             cursor.callproc(name_procedure, parameters)
+
+            results = cursor.fetchall()
             connection.commit()
 
-            return True
+            return results
 
         except pymysql.err.InternalError as e:
             Logger.add_to_log("info", str("DatabaseHandler:" + e))
             print("DatabaseHandler:" + e)
-            raise SQLExecutionError(f"Error SQL: {e}")
+            raise SQLCustomException(f"Error SQL: {e}")
 
         finally:
             # Cerramos el cursor y la conexión incluso si ocurre una excepción
