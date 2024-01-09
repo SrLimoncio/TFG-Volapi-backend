@@ -54,7 +54,7 @@ class Security:
             raise GeneratingTokenError() from ex
 
     @classmethod
-    def verify_token(cls, encoded_token, type_token, check_is_expired=True):
+    def verify_token(cls, encoded_token, type_token):
         try:
             # Verifica si el encabezado de Autorización está presente y tiene el formato correcto
             if not (encoded_token and encoded_token.lower().startswith('bearer')):
@@ -80,13 +80,12 @@ class Security:
                 raise InvalidTokenError()
 
             # Verificar la expiración del token
-            if check_is_expired:
-                expiration_time = datetime.datetime.fromtimestamp(payload['exp'], tz=cls.tz)
-                current_time = datetime.datetime.now(tz=cls.tz)
+            expiration_time = datetime.datetime.fromtimestamp(payload['exp'], tz=cls.tz)
+            current_time = datetime.datetime.now(tz=cls.tz)
 
-                if current_time >= expiration_time:
-                    # Token ha expirado
-                    raise TokenExpiredError()
+            if current_time >= expiration_time:
+                # Token ha expirado
+                raise TokenExpiredError()
 
             return payload['id']
 
@@ -96,7 +95,7 @@ class Security:
         except jwt.InvalidSignatureError:
             raise InvalidTokenError()
 
-        except jwt.DecodeError:
+        except jwt.InvalidTokenError:
             raise InvalidTokenError()
 
     @classmethod
@@ -106,3 +105,28 @@ class Security:
     @classmethod
     def verify_refresh_token(cls, encoded_token):
         return cls.verify_token(encoded_token, cls.TYPE_REFRESH_TOKEN)
+
+    @classmethod
+    def verify_expired_access_token(cls, encoded_token):
+        try:
+            # Verifica si el encabezado de Autorización está presente y tiene el formato correcto
+            if not (encoded_token and encoded_token.lower().startswith('bearer')):
+                raise InvalidTokenError()
+
+            parts = encoded_token.split(' ')
+            if not (len(parts) >= 2 and parts[1]):
+                raise InvalidTokenError()
+
+            jwt_token = parts[1]
+            payload = jwt.decode(jwt_token, cls.access_secret, algorithms=["HS256"], options={"verify_exp": False})
+
+            if (not ('id' in payload or payload['id'])) or (not ('exp' in payload or payload['exp'])):
+                raise InvalidTokenError()
+
+            return payload['id']
+
+        except jwt.InvalidSignatureError:
+            raise InvalidTokenError()
+
+        except jwt.InvalidTokenError:
+            raise InvalidTokenError()

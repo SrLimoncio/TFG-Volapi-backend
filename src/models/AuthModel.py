@@ -40,6 +40,7 @@ class AuthModel:
 
     @classmethod
     def validate_login(cls, email, provided_password):
+
         if email or provided_password:
             user = UserModel.get_user_by_email(email)
             if user:

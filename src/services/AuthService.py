@@ -16,6 +16,7 @@ class AuthServices:
     @SecurityErrorHandler.security_error_handler
     def authenticate_user(cls, email, provided_password):
         user = AuthModel.validate_login(email, provided_password)
+        Logger.add_to_log("info", user)
 
         if user:
             # Si la autenticación es exitosa, generamos un token y lo devolvemos
@@ -53,8 +54,8 @@ class AuthServices:
     @classmethod
     @SecurityErrorHandler.security_error_handler
     def check_access_token(cls, encoded_access_token):
-        is_valid = Security.verify_access_token(encoded_access_token)
-        if is_valid:
+        user_id = Security.verify_access_token(encoded_access_token)
+        if user_id:
             return {'message': "Successful", 'isValid': True, 'success': True}, 201
         else:
             return {'message': "Successful", 'isValid': False, 'success': False}, 401
@@ -64,11 +65,11 @@ class AuthServices:
     def renew_access_token(cls, encoded_failed_access_token, encoded_refresh_token):
         # Verificamos el token de refresco que sea valido y no este caducado
         refresh_token_user_id = Security.verify_refresh_token(encoded_refresh_token)
-        access_token_user_id = Security.verify_refresh_token(encoded_refresh_token)
+        expired_access_token_user_id = Security.verify_expired_access_token(encoded_refresh_token)
         Logger.add_to_log("info", refresh_token_user_id)
-        Logger.add_to_log("info", access_token_user_id)
+        Logger.add_to_log("info", expired_access_token_user_id)
 
-        if refresh_token_user_id == access_token_user_id:
+        if refresh_token_user_id == expired_access_token_user_id:
             new_access_token = Security.generate_access_token(refresh_token_user_id)
             return {'message': "Successful", 'newAccessToken': new_access_token, 'success': True}, 201
         else:

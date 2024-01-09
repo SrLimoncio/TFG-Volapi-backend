@@ -18,8 +18,6 @@ def auth_login():
 
         response, status_code = AuthServices.authenticate_user(email, password)
 
-        Logger.add_to_log("info", response)
-        Logger.add_to_log("info", status_code)
         return jsonify(response), status_code
 
     except Exception as ex:
@@ -74,7 +72,7 @@ def auth_check_access_token():
 
 
 @auth.route('/api/renew-access-token', methods=['POST'])
-def auth_check_refresh_token():
+def auth_renew_access_token():
     try:
         failed_access_token = request.headers.get('Failed-Access-Token')
         refresh_token = request.headers.get('Refresh-Token')
