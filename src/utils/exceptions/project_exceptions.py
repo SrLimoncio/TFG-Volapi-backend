@@ -1,23 +1,23 @@
 # project_exceptions.py
-from src.utils.exceptions.exceptions import SQLExecutionError
+from src.utils.exceptions.CustomExceptions import SQLCustomException
 
 
-class GenericProjectError(SQLExecutionError):
+class GenericProjectCustom(SQLCustomException):
     def __init__(self, message="Error general ProjectModel"):
         super().__init__(message)
 
 
-class NotValidInputsProjectError(SQLExecutionError):
+class NotValidInputsProjectCustom(SQLCustomException):
     def __init__(self, message="Parámetros de entrada no válidos"):
         super().__init__(message)
 
 
-class DuplicateProjectError(SQLExecutionError):
+class DuplicateProjectCustom(SQLCustomException):
     def __init__(self, message="Ya existe un proyecto con ese nombre"):
         super().__init__(message)
 
 
-class NotFoundProjectError(SQLExecutionError):
+class NotFoundProjectCustom(SQLCustomException):
     def __init__(self, message="No se pudo acceder al proyecto"):
         super().__init__(message)
 

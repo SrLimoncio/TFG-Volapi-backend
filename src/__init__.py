@@ -7,16 +7,17 @@ from .routes import (AuthRoute,
                      CommandRoute,
                      DashBoardRoute)
 
-app = Flask(__name__)
-CORS(app, resources={r"/menu/api/*": {"origins": "http://localhost:3000"}, # Menu principal
-                     r"/auth/api/*": {"origins": "http://localhost:3000"},
-                     r"/dashboard/api/*": {"origins": "http://localhost:3000"},
-                     r"/command/api/*": {"origins": "http://localhost:3000"}})
-
 
 def init_app(config):
+    app = Flask(__name__)
     # Configuration
     app.config.from_object(config)
+
+    CORS(app, resources={r"/menu/api/*": {"origins": app.config['FRONTEND_URL']},  # Menu principal
+                         r"/auth/api/*": {"origins": app.config['FRONTEND_URL']},
+                         r"/dashboard/api/*": {"origins": app.config['FRONTEND_URL']},
+                         r"/command/api/*": {"origins": app.config['FRONTEND_URL']}
+                         })
 
     # Blueprints
     app.register_blueprint(AuthRoute.auth, url_prefix='/auth')

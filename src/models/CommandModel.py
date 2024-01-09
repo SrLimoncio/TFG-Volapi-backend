@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 # Hanadlers
 from src.utils.DatabaseHandler import DatabaseHandler
+from src.utils.Logger import Logger
 
 
 class CommandModel:
@@ -24,7 +25,18 @@ class CommandModel:
         query = "SELECT name, plugin_name, plugin_options, description, chart_type FROM vol3_commands WHERE id = %s"
         values = (command_id,)
         data = DatabaseHandler.execute_query(query, values)
-        return data[0] if data else None
+
+        if data:
+            command_dict = {
+                'name': data[0][0],
+                'plugin_name': data[0][1],
+                'plugin_options': data[0][2],
+                'description': data[0][3],
+                'chart_type': data[0][4],
+            }
+            return command_dict
+        else:
+            return None
 
     @classmethod
     def create_result_vol_command(cls, command_id, user_id, project_id, result, command_line):
@@ -41,10 +53,30 @@ class CommandModel:
                  "WHERE command_id = %s AND user_id = %s AND project_id = %s")
         values = (command_id, user_id, project_id)
         data = DatabaseHandler.execute_query(query, values)
-        return data[0] if data else None
+
+        if data:
+            command_result_dict = {
+                'result': data[0][0],
+                'command_line': data[0][1],
+                'execution_time': data[0][2],
+                'error': data[0][3]
+            }
+            return command_result_dict
+        else:
+            return None
 
     @classmethod
-    def result_to_json(self, result):
+    def delete_result_vol_command(cls, command_id, user_id, project_id):
+        """
+        Método para eliminar un resultado de comando de la base de datos.
+        """
+        query = ("DELETE FROM results_commands_vol "
+                 "WHERE command_id = %s AND user_id = %s AND project_id = %s")
+        values = (command_id, user_id, project_id)
+        data = DatabaseHandler.execute_query(query, values, DatabaseHandler.DELETE)
+
+    @classmethod
+    def result_to_json(cls, result):
         """
         """
         output_dict = {}

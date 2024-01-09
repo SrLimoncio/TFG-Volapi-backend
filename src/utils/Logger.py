@@ -5,6 +5,7 @@ import traceback
 files_logger = {"DEFAULT": "app.log", "REQUESTS": "api_requests.log"}
 log_filename = files_logger["DEFAULT"]
 
+
 class Logger():
     def __set_logger(self):
         log_directory = 'src/utils/log'

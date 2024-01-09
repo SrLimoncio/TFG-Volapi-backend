@@ -1,8 +1,10 @@
-from config import config
+from config import configurations
 from src import init_app
+import os
 
-configuration = config['development']
-app = init_app(configuration)
+environment = os.environ.get('FLASK_ENV', 'development')
+app_config = configurations[environment]
+app = init_app(app_config)
 
 
 if __name__ == '__main__':

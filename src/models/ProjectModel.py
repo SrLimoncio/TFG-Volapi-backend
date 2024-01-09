@@ -1,13 +1,15 @@
 # Hanadlers
 from src.utils.DatabaseHandler import DatabaseHandler
 # Exceptions
-from src.utils.exceptions.exceptions import SQLExecutionError
-from src.utils.exceptions.project_exceptions import (GenericProjectError,
-                                                     NotValidInputsProjectError,
-                                                     NotFoundProjectError,
-                                                     DuplicateProjectError)
+from src.utils.exceptions.CustomExceptions import SQLCustomException
+from src.utils.exceptions.project_exceptions import (GenericProjectCustom,
+                                                     NotValidInputsProjectCustom,
+                                                     NotFoundProjectCustom,
+                                                     DuplicateProjectCustom)
 
 from src.utils.Logger import Logger
+
+
 class ProjectModel:
     """
     Clase que encapsula información y operaciones relacionadas con proyectos en la base de datos.
@@ -40,6 +42,23 @@ class ProjectModel:
     """
 
     @classmethod
+    def has_project_active(cls, user_id):
+        """
+        Comprueba si el usuario tiene proyectos activos.
+
+        Args:
+            user_id (int): ID del usuario.
+
+        Returns:
+            bool: True si el usuario tiene al menos un proyecto activo, False en caso contrario.
+        """
+        query = "SELECT 1 FROM user_projects WHERE user_id = %s AND is_active = TRUE LIMIT 1"
+        values = (user_id,)
+        data = DatabaseHandler.execute_query(query, values, DatabaseHandler.SELECT)
+        # Devuelve True si se encuentra al menos un proyecto activo, False en caso contrario
+        return bool(data)
+
+    @classmethod
     def get_projects(cls, user_id):
         """
         Recupera los proyectos del usuario de la base de datos.
@@ -51,7 +70,7 @@ class ProjectModel:
             list: Lista de proyectos del usuario. Cada proyecto es una instancia de la clase ProjectModel.
                 Retorna None si no hay proyectos o hay un error en la consulta.
         """
-        query = "SELECT id, name, forensic_tool, memory_os, memory_path, sha256, sha1, md5, is_active FROM user_projects WHERE user_id = %s"
+        query = "SELECT id, name, forensic_tool, memory_os, memory_file, sha256, sha1, md5, is_active FROM user_projects WHERE user_id = %s"
         values = (user_id,)
         data = DatabaseHandler.execute_query(query, values, DatabaseHandler.SELECT)
         return data if data else None
@@ -84,10 +103,21 @@ class ProjectModel:
             dict: Diccionario con la información del proyecto.
                 Retorna None si no se encuentra el proyecto o hay un error en la consulta.
         """
-        query = f"SELECT id, name, forensic_tool, memory_os, memory_path FROM user_projects WHERE id = %s"
+        query = "SELECT id, name, forensic_tool, memory_os, memory_file FROM user_projects WHERE id = %s"
         values = (project_id,)
         data = DatabaseHandler.execute_query(query, values, DatabaseHandler.SELECT)
-        return data[0] if data else None
+
+        if data:
+            project_dict = {
+                'id': data[0][0],
+                'name': data[0][1],
+                'tool': data[0][2],
+                'os': data[0][3],
+                'memory_file': data[0][4]
+            }
+            return project_dict
+        else:
+            return None
 
     @classmethod
     def get_is_active_project(cls, project_id):
@@ -124,7 +154,7 @@ class ProjectModel:
         return True if data else False
 
     @classmethod
-    def create_project(cls, user_id, name, forensic_tool, memory_os, memory_path, sha256, sha1, md5):
+    def create_project(cls, user_id, name, forensic_tool, memory_os):
         """
         Crea un nuevo proyecto en la base de datos.
 
@@ -133,35 +163,59 @@ class ProjectModel:
             name (str): Nombre del proyecto.
             forensic_tool (int): Herramienta forense asociada al proyecto.
             memory_os (int): Sistema operativo de la memoria.
-            memory_path (str): Ruta de la memoria.
-            sha256 (str): Valor sha256 del proyecto.
-            sha1 (str): Valor sha1 del proyecto.
-            md5 (str): Valor md5 del proyecto.
 
         Returns:
             bool: True si la operación fue exitosa, False si hay un error.
         """
         try:
             name_procedure = "CreateProject"
-            values = (user_id, name, forensic_tool, memory_os, memory_path, sha256, sha1, md5)
+            values = (user_id, name, forensic_tool, memory_os)
             data = DatabaseHandler.call_procedure(name_procedure, values)
-            return True if data else False
+            return data if data else None
 
-        except SQLExecutionError as e:
-            Logger.add_to_log("info", str("projectmodel:" + e))
-            print("projectmodel:" + e)
+        except SQLCustomException as e:
             sqlstate = e.args[0]
             print("sqlstate: " + sqlstate)
             if sqlstate == '45000':
-                raise GenericProjectError(f"Error SQL generico: {e}")
+                raise GenericProjectCustom(f"Error SQL generico: {e}")
             elif sqlstate == '45001':
-                raise NotValidInputsProjectError()
+                raise NotValidInputsProjectCustom()
             elif sqlstate == '45002':
-                raise DuplicateProjectError()
+                raise DuplicateProjectCustom()
             elif sqlstate == '45003':
-                raise NotFoundProjectError()
+                raise NotFoundProjectCustom()
             else:
-                raise GenericProjectError(f"Error SQL desconocido: {e}")
+                raise GenericProjectCustom(f"Error SQL desconocido: {e}")
+
+    @classmethod
+    def update_memory_info_project(cls, project_id, memory_path, sha256, sha1, md5):
+        """
+        """
+        query = ("UPDATE user_projects "
+                 "SET memory_file = %s , sha256 = %s , sha1 = %s , md5 = %s "
+                 "WHERE id= %s")
+        values = (memory_path, sha256, sha1, md5, project_id)
+        data = DatabaseHandler.execute_query(query, values, DatabaseHandler.UPDATE)
+        return True if data else False
+
+    @classmethod
+    def push_upload_info_project(cls, project_id, total_chunks, _file_name):
+        """
+        """
+        query = ("INSERT INTO user_project_info_upload_file "
+                 "(project_id, total_chunks, file_name) "
+                 "VALUES ( %s, %s, %s )")
+        values = (project_id, total_chunks, _file_name)
+        data = DatabaseHandler.execute_query(query, values, DatabaseHandler.INSERT)
+
+    @classmethod
+    def get_upload_info_project(cls, project_id):
+        """
+        """
+        query = "SELECT total_chunks, file_name FROM user_project_info_upload_file WHERE project_id = %s"
+        values = (project_id,)
+        data = DatabaseHandler.execute_query(query, values, DatabaseHandler.SELECT)
+        return data[0] if data else None
 
     @classmethod
     def update_name_project(cls, id_project, new_name):
@@ -181,7 +235,7 @@ class ProjectModel:
         return True if data else False
 
     @classmethod
-    def delete_project(cls, id_project):
+    def delete_project(cls, id_user, id_project):
         """
         Elimina un proyecto de la base de datos.
 
@@ -191,7 +245,16 @@ class ProjectModel:
         Returns:
             bool: True si la operación fue exitosa, False si hay un error.
         """
-        query = "DELETE FROM user_projects WHERE id = %s"
-        values = (id_project,)
-        data = DatabaseHandler.execute_query(query, values, DatabaseHandler.DELETE)
-        return True if data else False
+        try:
+            name_procedure = "DeleteProject"
+            values = (id_user, id_project)
+            data = DatabaseHandler.call_procedure(name_procedure, values)
+            return data[-1][0] if data else None
+
+        except SQLCustomException as e:
+            sqlstate = e.args[0]
+            if sqlstate == '45000':
+                raise GenericProjectCustom(f"Error SQL generico: {e}")
+            else:
+                raise GenericProjectCustom(f"Error SQL desconocido: {e}")
+

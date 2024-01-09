@@ -18,7 +18,7 @@ class MenuModel:
         #query = "SELECT id, title, description FROM menu_subcategories WHERE category_id = %s"
         #query = ("SELECT ms.id, vc.name, ms.description, ms.command_id FROM menu_subcategories_vol ms "
                  #"LEFT JOIN volatility_commands vc ON ms.command_id = vc.id WHERE ms.category_id = %s")
-        query = "SELECT id, name, short_description FROM vol3_commands WHERE id_category = %s"
+        query = "SELECT id, name, short_description, plugin_options FROM vol3_commands WHERE id_category = %s"
         values = (category_id,)
         data = DatabaseHandler.execute_query(query, values)
         return data if data else None
