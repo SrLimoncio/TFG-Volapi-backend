@@ -105,12 +105,14 @@ class CommandService:
                 # Crear el chart
                 chart_json = chart_builder.build_chart(command_id, result_json)
 
+            Logger.add_to_log("error", result_json)
             return {'message': 'OK',
                     'title': command_dict['name'],
                     'description': command_dict['description'],
                     'command_line': command_result_dict['command_line'],
                     'execution_time': command_result_dict['execution_time'],
                     'commandOutput': result_json,
+                    'chartType': command_dict['chart_type'],
                     'chartOutput': chart_json,
                     'success': True}, 200
 

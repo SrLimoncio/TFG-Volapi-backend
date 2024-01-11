@@ -25,8 +25,8 @@ class Security:
             current_time = datetime.datetime.now(tz=cls.tz)
             payload = {
                 'iat': current_time,
-                # 'exp': datetime.datetime.now(tz=cls.tz) + datetime.timedelta(hours=1),
-                'exp': current_time + datetime.timedelta(minutes=10),
+                'exp': datetime.datetime.now(tz=cls.tz) + datetime.timedelta(hours=1),
+                # 'exp': current_time + datetime.timedelta(minutes=10),
                 'id': user_id
             }
             return jwt.encode(payload, cls.access_secret, algorithm="HS256")
@@ -42,8 +42,8 @@ class Security:
             current_time = datetime.datetime.now(tz=cls.tz)
             payload = {
                 'iat': current_time,
-                #'exp': current_time + datetime.timedelta(days=3),
-                'exp': current_time + datetime.timedelta(minutes=20),
+                'exp': current_time + datetime.timedelta(days=3),
+                # 'exp': current_time + datetime.timedelta(minutes=20),
                 'id': user_id
             }
             return jwt.encode(payload, cls.refresh_secret, algorithm="HS256")

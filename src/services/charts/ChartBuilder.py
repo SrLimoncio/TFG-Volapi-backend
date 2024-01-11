@@ -3,6 +3,8 @@ import traceback
 import pandas as pd
 from io import StringIO
 import json
+from collections import Counter
+import datetime
 
 # Logger
 from src.utils.Logger import Logger
@@ -123,5 +125,17 @@ class GroupPidsSunburstChartBuilder(SunburstChartBuilder):
 
 
 class TimelineChartBuilder(ChartBuilder):
-    def build_chart(self, data):
-        pass
+    def build_chart(self, command_id, data):
+        # Extraer fechas de los eventos
+        dates = [item[2].strip() for item in data['values'] if item[2] != 'N/A']
+
+        # Convertir fechas a objetos datetime (asumiendo el formato 'YYYY-MM-DD HH:MM:SS')
+        formatted_dates = [datetime.datetime.strptime(date, '%Y-%m-%d %H:%M:%S.%f') for date in dates]
+
+        # Contar eventos por fecha
+        date_counts = Counter(formatted_dates)
+
+        # Preparar datos para el gráfico
+        graph_data = [{'date': date, 'count': count} for date, count in date_counts.items()]
+
+        return graph_data
