@@ -13,10 +13,11 @@ def init_app(config):
     # Configuration
     app.config.from_object(config)
 
-    CORS(app, resources={r"/menu/api/*": {"origins": app.config['FRONTEND_URL']},  # Menu principal
-                         r"/auth/api/*": {"origins": app.config['FRONTEND_URL']},
-                         r"/dashboard/api/*": {"origins": app.config['FRONTEND_URL']},
-                         r"/command/api/*": {"origins": app.config['FRONTEND_URL']}
+    frontend_url = app.config['FRONTEND_URL']
+    CORS(app, resources={r"/auth/api/*": {"origins": frontend_url},
+                         r"/menu/api/*": {"origins": frontend_url},
+                         r"/command/api/*": {"origins": frontend_url},
+                         r"/dashboard/api/*": {"origins": frontend_url}
                          })
 
     # Blueprints

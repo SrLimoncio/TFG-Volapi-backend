@@ -8,6 +8,12 @@ log_filename = files_logger["DEFAULT"]
 
 class Logger():
     def __set_logger(self):
+        """
+                Configura y obtiene una instancia del logger.
+
+                Returns:
+                    logging.Logger: Una instancia del logger configurada.
+                """
         log_directory = 'src/utils/log'
 
         logger = logging.getLogger(__name__)
@@ -29,6 +35,13 @@ class Logger():
 
     @classmethod
     def add_to_log(cls, level, message):
+        """
+        Añade un mensaje al log.
+
+        Args:
+            level (str): Nivel de severidad del mensaje (critical, error, warning, info, debug).
+            message (str): Mensaje a registrar en el log.
+        """
         try:
             logger = cls.__set_logger(cls)
 
@@ -48,4 +61,10 @@ class Logger():
 
     @classmethod
     def set_file_logger(cls, type):
+        """
+        Establece el archivo de log basado en el tipo proporcionado.
+
+        Args:
+            type (str): Tipo de archivo de log a usar.
+        """
         log_filename = files_logger[type]

@@ -1,5 +1,8 @@
-# project_exceptions.py
-from src.utils.exceptions.CustomExceptions import SQLCustomException
+
+class SQLCustomException(Exception):
+    def __init__(self, message):
+        self.message = message
+        super().__init__(self.message)
 
 
 class GenericProjectCustom(SQLCustomException):

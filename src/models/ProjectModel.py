@@ -1,13 +1,11 @@
 # Hanadlers
 from src.utils.DatabaseHandler import DatabaseHandler
 # Exceptions
-from src.utils.exceptions.CustomExceptions import SQLCustomException
-from src.utils.exceptions.project_exceptions import (GenericProjectCustom,
-                                                     NotValidInputsProjectCustom,
-                                                     NotFoundProjectCustom,
-                                                     DuplicateProjectCustom)
-
-from src.utils.Logger import Logger
+from src.exceptions.ProjectExceptions import (SQLCustomException,
+                                              GenericProjectCustom,
+                                              NotValidInputsProjectCustom,
+                                              NotFoundProjectCustom,
+                                              DuplicateProjectCustom)
 
 
 class ProjectModel:
@@ -174,22 +172,29 @@ class ProjectModel:
             return data if data else None
 
         except SQLCustomException as e:
-            sqlstate = e.args[0]
-            print("sqlstate: " + sqlstate)
-            if sqlstate == '45000':
-                raise GenericProjectCustom(f"Error SQL generico: {e}")
-            elif sqlstate == '45001':
+            if e.message == 'Error: Parámetros de entrada no válidos':
                 raise NotValidInputsProjectCustom()
-            elif sqlstate == '45002':
+            elif e.message == 'Error: Ya existe un proyecto con ese nombre':
                 raise DuplicateProjectCustom()
-            elif sqlstate == '45003':
+            elif e.message == 'Error: No se pudo obtener el ID del proyecto recién insertado':
                 raise NotFoundProjectCustom()
             else:
-                raise GenericProjectCustom(f"Error SQL desconocido: {e}")
+                raise GenericProjectCustom(f"Error SQL no controlado: {e}")
 
     @classmethod
     def update_memory_info_project(cls, project_id, memory_path, sha256, sha1, md5):
         """
+        Actualiza la información de memoria de un proyecto.
+
+        Args:
+            project_id (int): ID del proyecto a actualizar.
+            memory_path (str): Ruta del archivo de memoria.
+            sha256 (str): Hash SHA256 del archivo de memoria.
+            sha1 (str): Hash SHA1 del archivo de memoria.
+            md5 (str): Hash MD5 del archivo de memoria.
+
+        Returns:
+            bool: True si la actualización fue exitosa, False en caso contrario.
         """
         query = ("UPDATE user_projects "
                  "SET memory_file = %s , sha256 = %s , sha1 = %s , md5 = %s "
@@ -201,6 +206,14 @@ class ProjectModel:
     @classmethod
     def push_upload_info_project(cls, project_id, total_chunks, _file_name):
         """
+        Inserta información sobre la carga de un archivo en la base de datos.
+
+        Args:
+            project_id (int): ID del proyecto asociado.
+            total_chunks (int): Número total de fragmentos del archivo.
+            _file_name (str): Nombre del archivo.
+
+        No retorna nada.
         """
         query = ("INSERT INTO user_project_info_upload_file "
                  "(project_id, total_chunks, file_name) "
@@ -211,6 +224,14 @@ class ProjectModel:
     @classmethod
     def get_upload_info_project(cls, project_id):
         """
+        Recupera información sobre la carga de un archivo para un proyecto.
+
+        Args:
+            project_id (int): ID del proyecto a consultar.
+
+        Returns:
+            tuple: Contiene el número total de fragmentos y el nombre del archivo, si existe.
+                   Retorna None si no hay datos o hay un error en la consulta.
         """
         query = "SELECT total_chunks, file_name FROM user_project_info_upload_file WHERE project_id = %s"
         values = (project_id,)
@@ -257,4 +278,3 @@ class ProjectModel:
                 raise GenericProjectCustom(f"Error SQL generico: {e}")
             else:
                 raise GenericProjectCustom(f"Error SQL desconocido: {e}")
-
