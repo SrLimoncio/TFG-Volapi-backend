@@ -1,10 +1,8 @@
 from decouple import config
-
 import pymysql
-import traceback
 
-# Logger
-from src.utils.Logger import Logger
+# Exceptions
+from src.exceptions.DataBaseExceptions import DBConnectionException
 
 
 def get_connection():
@@ -17,5 +15,4 @@ def get_connection():
         )
 
     except Exception as ex:
-        Logger.add_to_log("Error", str(ex))
-        Logger.add_to_log("Error", traceback.format_exc())
+        raise DBConnectionException(f"Error SQL: Conexion fallida con la Base de datos: {ex}")

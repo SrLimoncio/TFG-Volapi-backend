@@ -1,57 +1,62 @@
 # Esta clase se encarga de la autenticacion y la seguridad de las credenciales de los usuarios.
-import bcrypt
 import re
 
 # Hanadlers
 from src.utils.DatabaseHandler import DatabaseHandler
 # UserModel
 from src.models.UserModel import UserModel
+from src.utils.Security import Security
 
-from src.utils.Logger import Logger
+from src.exceptions.AuthExceptions import InvalidCredentialsException, UserNotFoundException
 
 
 class AuthModel:
     @classmethod
-    def verify_password(cls, provided_password, hashed_password):
-        # Método para verificar si la contraseña proporcionada coincide
-        # con la contraseña almacenada en la base de datos.
-        if isinstance(provided_password, str):
-            provided_password = provided_password.encode('utf-8')
-        if isinstance(hashed_password, str):
-            hashed_password = hashed_password.encode('utf-8')
-
-        return bcrypt.checkpw(provided_password, hashed_password)
-
-    @classmethod
     def authenticate_user(cls, email, provided_password):
-        # Método para autenticar a un usuario mediante la verificación de credenciales.
-        user_data = UserModel.get_user_by_email(email)
-        if user_data and cls.verify_password(provided_password, user_data['password']):
-            return UserModel(user_data['id'], email, user_data['password'], user_data['username'], user_data['name'])  # Usuario autenticado
+        """
+        Autentica a un usuario en el sistema.
+
+        Args:
+            email (str): Email del usuario a autenticar.
+            provided_password (str): Contraseña proporcionada por el usuario.
+
+        Returns:
+            UserModel: El modelo del usuario autenticado.
+
+        Raises:
+            InvalidCredentialsException: Si el email o la contraseña son incorrectos.
+            UserNotFoundException: Si el usuario no se encuentra.
+        """
+
+        if not email or not provided_password:
+            raise InvalidCredentialsException("Error Auth: Email and password are required.")
+
+        user = UserModel.get_user_by_email(email)
+
+        if not user:
+            raise UserNotFoundException("Error Auth: User not found.")
+
+        if Security.verify_password(provided_password, user.password):
+            return user
         else:
-            return None  # Autenticación fallida
-
-    @classmethod
-    def generate_password_hash(cls, password):
-        # Método para generar un hash seguro de una contraseña antes de almacenarla en la base de datos.
-        salt = bcrypt.gensalt()
-        hashed_password = bcrypt.hashpw(password.encode('utf-8'), salt)
-        return hashed_password
-
-    @classmethod
-    def validate_login(cls, email, provided_password):
-
-        if email or provided_password:
-            user = UserModel.get_user_by_email(email)
-            if user:
-                if cls.verify_password(provided_password, user.password):
-                    return user
-                # if UserModel.user_exists_email(email):  # Correo ya en uso
-                # errors['email'] = "The email address is already in use. Please choose another one."
-        return None
+            raise InvalidCredentialsException("Error Auth: Invalid password.")
 
     @classmethod
     def validate_registration(cls, email, password, password2, username, name):
+        """
+        Valida los datos de registro de un nuevo usuario.
+
+        Args:
+            email (str): Email del usuario.
+            password (str): Contraseña del usuario.
+            password2 (str): Confirmación de la contraseña.
+            username (str): Nombre de usuario.
+            name (str): Nombre completo del usuario.
+
+        Returns:
+            dict: Un diccionario con errores de validación, si los hay.
+        """
+
         errors = {}
 
         email_regex = r"^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$"

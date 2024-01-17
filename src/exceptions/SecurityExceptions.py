@@ -1,4 +1,8 @@
-from src.utils.exceptions.CustomExceptions import SecurityCustomException
+
+class SecurityCustomException(Exception):
+    def __init__(self, message):
+        self.message = "Error Security: " + message
+        super().__init__(self.message)
 
 
 class GeneralTokenError(SecurityCustomException):

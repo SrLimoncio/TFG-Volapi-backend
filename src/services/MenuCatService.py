@@ -1,22 +1,25 @@
-import traceback
 
-# DatabaseHandler
-from src.utils.DatabaseHandler import DatabaseHandler
-# Logger
-from src.utils.Logger import Logger
 # Security
 from src.utils.Security import Security
 # Model
 from src.models.MenuModel import MenuModel
-from src.models.UserModel import UserModel
 from src.models.ProjectModel import ProjectModel
-from src.utils.exceptions.error_handlers.SecurityErrorHandler import SecurityErrorHandler
 
 
 class MenuCatService:
     @classmethod
-    @SecurityErrorHandler.security_error_handler
     def get_menu_cats(cls, encoded_token):
+        """
+        Obtiene las categorías de menú con sus respectivos comandos y estado actual.
+
+        Args:
+            encoded_token (str): Token de acceso codificado del usuario.
+
+        Returns:
+            dict: Un diccionario que contiene las categorías y su información.
+            int: Código de estado HTTP.
+        """
+
         user_id = Security.verify_access_token(encoded_token)
         project_active = ProjectModel.get_id_project_active(user_id)
         categories_data = MenuModel.get_categories()
@@ -64,8 +67,19 @@ class MenuCatService:
             return {"categories": [], "success": False}, 200
 
     @classmethod
-    @SecurityErrorHandler.security_error_handler
     def get_info_subcat_user(cls, encoded_token, command_id):
+        """
+        Obtiene información sobre una subcategoría específica para un usuario.
+
+        Args:
+            encoded_token (str): Token de acceso codificado del usuario.
+            command_id (int): ID del comando o subcategoría.
+
+        Returns:
+            dict: Estado de la subcategoría y éxito de la operación.
+            int: Código de estado HTTP.
+        """
+
         # Decodifica el token para obtener el usuario
         user_id = Security.verify_access_token(encoded_token)
 

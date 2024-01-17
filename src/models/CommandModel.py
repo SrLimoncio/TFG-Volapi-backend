@@ -1,27 +1,40 @@
-import json
-from datetime import datetime
 # Hanadlers
 from src.utils.DatabaseHandler import DatabaseHandler
-from src.utils.Logger import Logger
 
 
 class CommandModel:
     """Clase para manejar información y operaciones relacionadas con comandos."""
 
-    def __init__(self, _id, _name, _description, _parameters, _user_id, _result, _error, _execution_time):
-        """Inicializa una instancia de la clase CommandModel."""
-        self.id = _id
-        self.name = _name
-        self.description = _description
-        self.parameters = _parameters
-        self.user_id = _user_id
-        self.result = _result
-        self.error = _error
-        self.execution_time = _execution_time
+    @classmethod
+    def create_result_vol_command(cls, command_id, user_id, project_id, result, command_line):
+        """
+        Guarda resultados de un comando para un usuario específico.
+
+        Args:
+            command_id (int): Identificador del comando.
+            user_id (int): Identificador del usuario.
+            project_id (int): Identificador del proyecto.
+            result (str): Resultado del comando.
+            command_line (str): Línea de comando ejecutada.
+        """
+        query = ("INSERT INTO results_commands_vol "
+                 "(command_id, user_id, project_id, result, command_line) "
+                 "VALUES (%s, %s, %s, %s, %s)")
+        values = (command_id, user_id, project_id, result, command_line)
+        data = DatabaseHandler.execute_query(query, values, DatabaseHandler.INSERT)
 
     @classmethod
     def get_info_command(cls, command_id):
-        """Obtiene información sobre un comando."""
+        """
+        Obtiene información sobre un comando.
+
+        Args:
+            command_id (int): Identificador del comando.
+
+        Returns:
+            Optional[Dict[str, str]]: Diccionario con la información del comando si se encuentra, None en caso contrario.
+        """
+
         query = "SELECT name, plugin_name, plugin_options, description, chart_type FROM vol3_commands WHERE id = %s"
         values = (command_id,)
         data = DatabaseHandler.execute_query(query, values)
@@ -39,16 +52,18 @@ class CommandModel:
             return None
 
     @classmethod
-    def create_result_vol_command(cls, command_id, user_id, project_id, result, command_line):
-        """Guarda resultados de un comando para un usuario específico."""
-        query = ("INSERT INTO results_commands_vol "
-                 "(command_id, user_id, project_id, result, command_line) "
-                 "VALUES (%s, %s, %s, %s, %s)")
-        values = (command_id, user_id, project_id, result, command_line)
-        data = DatabaseHandler.execute_query(query, values, DatabaseHandler.INSERT)
-
-    @classmethod
     def get_result_vol_command(cls, command_id, user_id, project_id):
+        """
+        Obtiene el resultado de un comando para un usuario y proyecto específicos.
+
+        Args:
+            command_id (int): Identificador del comando.
+            user_id (int): Identificador del usuario.
+            project_id (int): Identificador del proyecto.
+
+        Returns:
+            Optional[Dict[str, str]]: Diccionario con el resultado del comando si se encuentra, None en caso contrario.
+        """
         query = ("SELECT result, command_line, execution_time, error FROM results_commands_vol "
                  "WHERE command_id = %s AND user_id = %s AND project_id = %s")
         values = (command_id, user_id, project_id)
@@ -68,7 +83,12 @@ class CommandModel:
     @classmethod
     def delete_result_vol_command(cls, command_id, user_id, project_id):
         """
-        Método para eliminar un resultado de comando de la base de datos.
+        Elimina un resultado de comando de la base de datos para un usuario y proyecto específicos.
+
+        Args:
+            command_id (int): Identificador del comando.
+            user_id (int): Identificador del usuario.
+            project_id (int): Identificador del proyecto.
         """
         query = ("DELETE FROM results_commands_vol "
                  "WHERE command_id = %s AND user_id = %s AND project_id = %s")
@@ -78,6 +98,13 @@ class CommandModel:
     @classmethod
     def result_to_json(cls, result):
         """
+        Convierte el resultado de un comando a formato JSON.
+
+        Args:
+            result (str): Resultado del comando en formato de texto.
+
+        Returns:
+            Dict[str, List[str]]: Diccionario que representa el resultado en formato JSON.
         """
         output_dict = {}
 

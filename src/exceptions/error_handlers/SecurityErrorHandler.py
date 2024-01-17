@@ -1,6 +1,9 @@
 from functools import wraps
+
+from flask import jsonify
+
 from src.utils.Logger import Logger
-from src.utils.exceptions.SecurityExceptions import InvalidTokenError, TokenExpiredError
+from src.exceptions.SecurityExceptions import InvalidTokenError, TokenExpiredError
 import traceback
 
 
@@ -14,12 +17,12 @@ class SecurityErrorHandler:
 
             except InvalidTokenError as ex:
                 Logger.add_to_log("error", str(ex))
-                Logger.add_to_log("error", traceback.format_exc())
-                return {'message': str(ex), 'isValid': False, 'isExpired': False}, 401
+                # Logger.add_to_log("error", traceback.format_exc())
+                return jsonify({'message': str(ex), 'isValid': False, 'isExpired': False}), 401
 
             except TokenExpiredError as ex:
                 Logger.add_to_log("error", str(ex))
-                Logger.add_to_log("error", traceback.format_exc())
-                return {'message': str(ex), 'isValid': True, 'isExpired': True}, 401
+                # Logger.add_to_log("error", traceback.format_exc())
+                return jsonify({'message': str(ex), 'isValid': True, 'isExpired': True}), 401
 
         return decorated_function

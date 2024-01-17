@@ -3,19 +3,14 @@
 # Hanadlers
 from src.utils.DatabaseHandler import DatabaseHandler
 
-from src.utils.Logger import Logger
-
 
 class UserModel:
-    def __init__(self, id, email, hashed_password, username, name, activation_token=None):
+    def __init__(self, id, email, hashed_password, username, name):
         self.id = id
         self.email = email
         self.password = hashed_password
         self.username = username
         self.name = name
-        self.activation_token = activation_token
-
-        # Puedes agregar más atributos de usuario según tus necesidades, como nombre, rol, etc.
 
     @classmethod
     def create_user(cls, email, password, username, name):
@@ -23,6 +18,7 @@ class UserModel:
         procedure = "CreateUser"
         values = (email, password, username, name, "ACTIVE")
         data = DatabaseHandler.call_procedure(procedure, values)
+        # return cls(*data[0]) if data else None
 
     @classmethod
     def user_exists_email(cls, email):
@@ -47,3 +43,9 @@ class UserModel:
         values = (email,)
         data = DatabaseHandler.execute_query(query, values, DatabaseHandler.SELECT)
         return cls(*data[0]) if data else None
+
+    def get_profile(cls, user_id):
+        query = "SELECT name, email, username, registration_date FROM users WHERE id = %s"
+        values = (user_id,)
+        data = DatabaseHandler.execute_query(query, values, DatabaseHandler.SELECT)
+        return data[0] if data else None

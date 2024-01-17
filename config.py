@@ -16,11 +16,10 @@ class DevelopmentConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     FRONTEND_URL = config('PRODUCTION_FRONTEND_URL', default='https://memorixanalitic.web.app')
-    JWT_ACCESS_SECRET = config('JWT_ACCESS_SECRET')
-    JWT_REFRESH_SECRET = config('JWT_REFRESH_SECRET')
 
 
 configurations = {
     'development': DevelopmentConfig,
     'production': ProductionConfig
 }
+
