@@ -188,5 +188,3 @@ def delete_project(id_project):
         Logger.add_to_log("error", str(ex))
         Logger.add_to_log("error", traceback.format_exc())
         return jsonify({'message': "Internal Server Error", 'success': False}), 500
-
-
