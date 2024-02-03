@@ -14,7 +14,11 @@ def init_app(config):
     app.config.from_object(config)
 
     frontend_url = app.config['FRONTEND_URL']
-    CORS(app, resources={r"/auth/api/*": {"origins": frontend_url},
+    CORS(app, resources={r"/auth/api/*": {
+                                "origins": frontend_url,
+                                "allow_headers": ["Content-Type", "Authorization", "X-Requested-With"],
+                                "methods": ["OPTIONS", "GET", "POST"],
+                                },
                          r"/menu/api/*": {"origins": frontend_url},
                          r"/command/api/*": {"origins": frontend_url},
                          r"/dashboard/api/*": {"origins": frontend_url}
