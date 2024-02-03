@@ -15,7 +15,7 @@ class DevelopmentConfig(Config):
 
 class ProductionConfig(Config):
     DEBUG = False
-    FRONTEND_URL = config('PRODUCTION_FRONTEND_URL', default='https://memorixanalitic.web.app')
+    FRONTEND_URL = config('PRODUCTION_FRONTEND_URL')
 
 
 configurations = {
