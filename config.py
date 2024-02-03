@@ -22,4 +22,3 @@ configurations = {
     'development': DevelopmentConfig,
     'production': ProductionConfig
 }
-
